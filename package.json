@@ -1,0 +1,21 @@
+{
+  "name": "confidence-pool",
+  "version": "0.0.0",
+  "description": "Web client for an NFL confidence pool.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edevine/confidence-pool"
+  },
+  "author": "Eric Devine",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/edevine/confidence-pool/issues"
+  },
+  "homepage": "https://github.com/edevine/confidence-pool",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "~4.13.4",
+    "pg": "~4.5.3"
+  }
+}
