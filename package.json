@@ -15,7 +15,11 @@
   "homepage": "https://github.com/edevine/confidence-pool",
   "dependencies": {
     "body-parser": "^1.15.0",
+    "cookie-parser": "^1.4.3",
     "express": "~4.13.4",
+    "express-session": "^1.14.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "pg": "~4.5.3"
   }
 }

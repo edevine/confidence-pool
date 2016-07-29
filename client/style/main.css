@@ -42,7 +42,7 @@ h2 {
     margin: 1em 0;
 }
 
-.login {
+#login-dialog {
     background-color: #fff;
     border: 1px solid #eee;
     border-radius: 2px;
@@ -52,8 +52,17 @@ h2 {
     width: 400px;
 }
 
-.login p {
-    text-align: center;
+#login-dialog.opening {
+    animation: fadeIn 0.25s ease-out;
+}
+
+#login-dialog.closed {
+    animation: fadeOut 0.25s ease-out;
+    opacity: 0;
+}
+
+#login-dialog.failed {
+    animation: shake 0.25s linear;
 }
 
 label {
@@ -69,19 +78,20 @@ input {
     border: 1px solid #ddd;
     border-radius: 2px;
     box-sizing: border-box;
+    color:#444;
     display:block;
     font-family: 'Junction', sans-serif;
     font-size: 18px;
     line-height: 22px;
     margin: 1em 0px;
     outline: none;
-    padding: 20px 6px 6px 6px;
+    padding: 6px;
     width: 100%;
 }
 
 input:focus {
     border: 2px solid #85c4b9;
-    padding: 19px 5px 5px 5px;
+    padding: 5px;
 }
 
 button {
@@ -118,6 +128,49 @@ button:focus {
     box-sizing: border-box;
     display: block;
     margin: 1em 0px;
-    padding: 6px;
+    padding: 7px;
     width: 100%;
 }
+
+#login-status {
+    font-size:12px;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translate(0px, 15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(0px, 15px);
+    }
+}
+
+@keyframes shake {
+    0% {
+        transform: translate(0px, 0px);
+    }
+    25% {
+        transform: translate(5px, 0px);
+    }
+    75% {
+        transform: translate(-5px, 0px);
+    }
+    100% {
+        transform: translate(0px, 0px);
+    }
+}
+
