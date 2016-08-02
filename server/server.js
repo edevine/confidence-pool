@@ -26,8 +26,10 @@ testClient.connect(err => {
 const users = {};
 
 passport.serializeUser((user, done) => {
-    done(null, user.email);
+    users[user.id] = user;
+    done(null, user.id);
 });
+
 passport.deserializeUser(function (id, done) {
     done(null, users[id]);
 });
@@ -42,7 +44,7 @@ passport.use('local', new LocalStrategy(
             }
             
             const query = client.query(
-                'select email, name from public.users where email = $1 and password = crypt($2, password) limit 1',
+                'select id, email, name from public.users where email = $1 and password = crypt($2, password) limit 1',
                 [email, password]
             );
             
@@ -73,20 +75,49 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
 }));
 
 app.use(passport.initialize());
-
 app.use(passport.session());
 
 app.post('/login',
-    passport.authenticate('local'),
+    passport.authenticate('local', {
+        successRedirect: '/leagues',
+    })
+);
+
+app.get('/leagues',
+    passport.authenticate('session'),
     (req, res, next) => {
-        res.send();
+        const client = new pg.Client(conString);
+        client.connect(err => {
+            if (err) {
+                return done(err);
+            }
+            
+            const query = client.query(
+                'select leagues.id, leagues.name from public.leagues, public.membership where membership.user = $1 and leagues.id = membership.league',
+                [req.session.passport.user]
+            );
+            
+            query.on('row', (row, result) => {
+                result.addRow(row);
+            });
+
+            query.on('end', result => {
+                res.header('Content-Type', 'application/json');
+                res.send(result.rows);
+                client.end();
+            });
+
+            query.on('error', err => {
+                client.end();
+                done(err);
+            });
+        });
     }
 );
 

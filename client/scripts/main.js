@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
         };
         request.open(event.target.method.toUpperCase(), event.target.action);
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader('Accept', 'application/json');
         request.send(data);
 
     });
