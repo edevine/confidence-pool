@@ -1,26 +1,26 @@
 document.addEventListener('DOMContentLoaded', function (event) {
-    var loginDialog = document.getElementById('login-dialog');
-    var loginForm = document.getElementById('login-form');
-    var signinButton = document.querySelector('.sign-in');
+    const loginDialog = <HTMLElement>document.getElementById('login-dialog');
+    const loginForm = <HTMLFormElement>document.getElementById('login-form');
+    const signinButton = <HTMLButtonElement>document.querySelector('.sign-in');
 
     loginDialog.style.removeProperty('display');
     loginDialog.className = 'opening';
 
-    loginForm.addEventListener('submit', function (event) {
+    loginForm.addEventListener('submit', (event) => {
         event.preventDefault();
         signinButton.disabled = true;
         loginDialog.className = '';
 
-        var fields = event.target.querySelectorAll('input');
-        var data = '';
-        for (var i = 0; i < fields.length; i++) {
+        const fields = loginForm.querySelectorAll('input');
+        let data = '';
+        for (let i = 0; i < fields.length; i++) {
             data += (i > 0 ? '&' : '')
                 + encodeURIComponent(fields[i].name).replace(/%20/g, '+')
                 + '=' + encodeURIComponent(fields[i].value).replace(/%20/g, '+');
         }
 
-        var request = new XMLHttpRequest();
-        request.onload = function (event) {
+        const request = new XMLHttpRequest();
+        request.onload = (event) => {
             signinButton.disabled = false;
             if (request.status === 200) {
                 loginDialog.className = 'closed';
@@ -31,11 +31,9 @@ document.addEventListener('DOMContentLoaded', function (event) {
                 loginDialog.className = 'failed';
             }
         };
-        request.open(event.target.method.toUpperCase(), event.target.action);
+        request.open(loginForm.method, loginForm.action);
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         request.setRequestHeader('Accept', 'application/json');
         request.send(data);
-
     });
-
 });
