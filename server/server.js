@@ -23,6 +23,10 @@ testClient.connect(err => {
     }
 });
 
+function addRow(row, result) {
+    result.addRow(row);
+}
+
 const users = {};
 
 passport.serializeUser((user, done) => {
@@ -48,9 +52,7 @@ passport.use('local', new LocalStrategy(
                 [email, password]
             );
             
-            query.on('row', (row, result) => {
-                result.addRow(row);
-            });
+            query.on('row', addRow);
 
             query.on('end', result => {
                 if (result.rows.length > 0) {
@@ -95,30 +97,85 @@ app.get('/leagues',
         const client = new pg.Client(conString);
         client.connect(err => {
             if (err) {
-                return done(err);
+                return res.status(500).send(err);
             }
             
             const query = client.query(
                 'select leagues.id, leagues.name from public.leagues, public.membership where membership.user = $1 and leagues.id = membership.league',
                 [req.session.passport.user]
             );
-            
-            query.on('row', (row, result) => {
-                result.addRow(row);
+
+            query.on('error', err => {
+                client.end();
+                res.status(500).send(err);
             });
+            
+            query.on('row', addRow);
 
             query.on('end', result => {
                 res.header('Content-Type', 'application/json');
                 res.send(result.rows);
                 client.end();
             });
-
-            query.on('error', err => {
-                client.end();
-                done(err);
-            });
         });
     }
 );
+
+app.get('/leagues/:leagueid',
+    passport.authenticate('session'),
+    (req, res) => {
+        const client = new pg.Client(conString);
+        client.connect(err => {
+            if (err) {
+                return res.status(500).send(err);
+            }
+
+            const query = client.query(
+                'select leagues.id, leagues.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league and users.id = $2 limit 1',
+                [req.params.leagueid, req.session.passport.user]
+            );
+            
+            query.on('error', err => {
+                client.end();
+                res.status(500).send(err);
+            });
+            
+            query.on('row', addRow);
+
+            query.on('end', result => {
+                if (result.rows.length === 0) {
+                    res.status(404).end();
+                    client.end();
+                    return;
+                }
+                const league = result.rows[0];
+            
+                const query = client.query(
+                    'select users.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league',
+                    [req.params.leagueid]
+                );
+
+                query.on('error', err => {
+                    client.end();
+                    res.status(500).send(err);
+                });
+                
+                query.on('row', addRow);
+
+                query.on('end', result => {
+                    res.header('Content-Type', 'application/json');
+                    res.send({
+                        id: league.id,
+                        name: league.name,
+                        members: result.rows,
+                    });
+                    client.end();
+                });
+
+            });
+
+        });
+    }
+)
 
 app.listen(port);

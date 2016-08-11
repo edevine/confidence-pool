@@ -2,8 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginDialog = <HTMLElement>document.getElementById('login-dialog');
     const loginForm = <HTMLFormElement>document.getElementById('login-form');
     const signinButton = <HTMLButtonElement>document.querySelector('.sign-in');
-    const leaguesPane = <HTMLElement>document.getElementById('leagues-pane');
-    const leaguesTable = leaguesPane.querySelector('tbody');
+    const leaguesListPane = <HTMLElement>document.getElementById('leagues-list-pane');
+    const leaguesListTable = leaguesListPane.querySelector('tbody');
+    const leagueOverviewPane = <HTMLElement>document.getElementById('league-overview-pane');
+    const leagueOverviewTable = leagueOverviewPane.querySelector('tbody');
 
     loginDialog.style.removeProperty('display');
     loginDialog.className = 'dialog opening';
@@ -20,23 +22,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginDialog.className = 'dialog closed';
                 setTimeout(() => {
                     loginDialog.style.setProperty('display', 'none');
-                    leaguesPane.style.removeProperty('display');
-                    leaguesPane.classList.add('opening');
+                    leaguesListPane.style.removeProperty('display');
+                    leaguesListPane.classList.add('opening');
                 }, 250);
-                renderLeagues(request.response);
+                renderLeaguesList(request.response);
             } else {
                 loginDialog.className = 'dialog failed';
             }
         });
     });
 
-    function renderLeagues(leagues: League[]) {
-        leaguesTable.innerHTML = leagues.map(toLeaguesRowHtml).join('');
+    function renderLeaguesList(leagues: LeagueInfo[]) {
+        leaguesListTable.innerHTML = leagues.map(toLeaguesRowHtml).join('');
     }
 
-    function toLeaguesRowHtml(league: League) {
-        return `<tr><td><a href="/leagues/${league.id}">${league.name}</a></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+    function toLeaguesRowHtml(league: LeagueInfo) {
+        return `<tr><td><a href="/leagues/${league.id}">${league.name}</a></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
     }
+
+    function renderLeagueOverview(details: LeagueDetails) {
+        leagueOverviewPane.querySelector('.league-name').textContent = details.name;
+        leagueOverviewTable.innerHTML = details.members.map(toMembersRowHtml).join('');
+    }
+
+    function toMembersRowHtml(member: User) {
+        return `<tr><td>${member.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+    }
+
+    leaguesListPane.addEventListener('click', (event: MouseEvent) => {
+        if (event.target instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            leaguesListPane.className = 'pane closed';
+            sendHyperlink(event.target, event => {
+                const request = <XMLHttpRequest>event.target;
+                leaguesListPane.style.setProperty('display', 'none');
+                leagueOverviewPane.style.removeProperty('display');
+                leagueOverviewPane.classList.add('opening');
+                if (request.status === 200) {
+                    renderLeagueOverview(request.response);
+                }
+            });
+        }
+    });
 
     /**
      * Listens to an event once
@@ -50,6 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Send a hyperlink via XHR
+     */
+    function sendHyperlink(
+        anchor: HTMLAnchorElement,
+        onload: (event: Event) => void
+    ) {
+        const request = new XMLHttpRequest();
+        listenOnce(request, 'load', onload);
+        request.responseType = "json";
+        request.open('get', anchor.href);
+        request.setRequestHeader('Accept', 'application/json');
+        request.send();
+    }
+
+    /**
      * Submits a form via XHR and invokes the callback with the payload
      */
     function submitForm<V, E>(
@@ -59,10 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const request = new XMLHttpRequest();
         listenOnce(request, 'load', onload);
         request.responseType = "json";
-        request.open(loginForm.method, loginForm.action);
+        request.open(form.method, form.action);
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        request.setRequestHeader('Accept', 'application/json');
-        request.send(encodeForm(loginForm));
+        request.setRequestHeader('Accformept', 'application/json');
+        request.send(encodeForm(form));
     }
 
     /**
