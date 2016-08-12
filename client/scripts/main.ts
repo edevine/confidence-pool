@@ -6,31 +6,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaguesListTable = leaguesListPane.querySelector('tbody');
     const leagueOverviewPane = <HTMLElement>document.getElementById('league-overview-pane');
     const leagueOverviewTable = leagueOverviewPane.querySelector('tbody');
+    const logoutLink = <HTMLAnchorElement>document.querySelector('a.logout');
 
-    loginDialog.style.removeProperty('display');
-    loginDialog.className = 'dialog opening';
+    const request = new XMLHttpRequest();
+    listenOnce(request, 'load', () => {
+        if (request.status === 200) {
+            leaguesListPane.style.removeProperty('display');
+            leaguesListPane.classList.add('opening');
+            logoutLink.style.removeProperty('display');
+            renderLeaguesList(request.response);
+        }
+        else {
+            loginDialog.style.removeProperty('display');
+            loginDialog.className = 'dialog opening';
 
-    loginForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        signinButton.disabled = true;
-        loginDialog.className = 'dialog';
+            loginForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                signinButton.disabled = true;
+                loginDialog.className = 'dialog';
 
-        submitForm(loginForm, event => {
-            signinButton.disabled = false;
-            const request = <XMLHttpRequest>event.target;
-            if (request.status === 200) {
-                loginDialog.className = 'dialog closed';
-                setTimeout(() => {
-                    loginDialog.style.setProperty('display', 'none');
-                    leaguesListPane.style.removeProperty('display');
-                    leaguesListPane.classList.add('opening');
-                }, 250);
-                renderLeaguesList(request.response);
-            } else {
-                loginDialog.className = 'dialog failed';
-            }
-        });
+                submitForm(loginForm, event => {
+                    signinButton.disabled = false;
+                    const request = <XMLHttpRequest>event.target;
+                    if (request.status === 200) {
+                        loginDialog.className = 'dialog closed';
+                        setTimeout(() => {
+                            loginDialog.style.setProperty('display', 'none');
+                            leaguesListPane.style.removeProperty('display');
+                            leaguesListPane.classList.add('opening');
+                            logoutLink.style.removeProperty('display');
+                        }, 250);
+                        renderLeaguesList(request.response);
+                    } else {
+                        loginDialog.className = 'dialog failed';
+                    }
+                });
+            });
+        }
     });
+    request.responseType = "json";
+    request.open('get', '/leagues');
+    request.setRequestHeader('Accept', 'application/json');
+    request.send();
+
 
     function renderLeaguesList(leagues: LeagueInfo[]) {
         leaguesListTable.innerHTML = leagues.map(toLeaguesRowHtml).join('');
@@ -103,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         request.responseType = "json";
         request.open(form.method, form.action);
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        request.setRequestHeader('Accformept', 'application/json');
+        request.setRequestHeader('Accept', 'application/json');
         request.send(encodeForm(form));
     }
 

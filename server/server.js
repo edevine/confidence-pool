@@ -35,7 +35,12 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(function (id, done) {
-    done(null, users[id]);
+    if (users.hasOwnProperty(id)) {
+        done(null, users[id]);
+    }
+    else {
+        done('Cannot find user', null);
+    }
 });
 
 passport.use('local', new LocalStrategy(
@@ -77,9 +82,9 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(session({
-    secret: 'keyboard cat',
+    secret: 'lsritnhb9856b',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
 }));
 
 app.use(passport.initialize());
@@ -91,8 +96,15 @@ app.post('/login',
     })
 );
 
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        res.redirect('/');
+    });
+});
+
 app.get('/leagues',
     passport.authenticate('session'),
+    isLoggedIn,
     (req, res, next) => {
         const client = new pg.Client(conString);
         client.connect(err => {
@@ -123,6 +135,7 @@ app.get('/leagues',
 
 app.get('/leagues/:leagueid',
     passport.authenticate('session'),
+    isLoggedIn,
     (req, res) => {
         const client = new pg.Client(conString);
         client.connect(err => {
@@ -176,6 +189,13 @@ app.get('/leagues/:leagueid',
 
         });
     }
-)
+);
+
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).end();
+}
 
 app.listen(port);
