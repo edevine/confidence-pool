@@ -4,9 +4,9 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const pg = require('pg');
+const co = require('co');
+const Pool = require('pg-pool');
 
-const conString = 'postgres://' + process.env.DB_AUTH + '@localhost/confidence-pool';
 
 // Validate port:
 const port = Number(process.env.PORT);
@@ -14,18 +14,21 @@ if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw new Error('Invalid port number: ' + process.env.PORT + '. Should be a number between 0 and 65535.')
 }
 
-// Verify database connection
-const testClient = new pg.Client(conString);
-testClient.connect(err => {
-    testClient.end();
-    if (err) {
-        throw err;
-    }
+const pool = new Pool({
+  user: 'confidence-pool',
+  password: process.env.PASSWORD,
+  host: 'localhost',
+  database: 'confidence-pool',
+  max: 10,
+  idleTimeoutMillis: 1000,
 });
 
-function addRow(row, result) {
-    result.addRow(row);
-}
+// Verify database connection
+pool.connect((err, client, done) => {
+    if (err) throw err;
+    done();
+});
+
 
 const users = {};
 
@@ -46,34 +49,22 @@ passport.deserializeUser(function (id, done) {
 passport.use('local', new LocalStrategy(
     { usernameField: 'email' },
     (email, password, done) => {
-        const client = new pg.Client(conString);
-        client.connect(err => {
-            if (err) {
-                return done(err);
-            }
-            
-            const query = client.query(
-                'select id, email, name from public.users where email = $1 and password = crypt($2, password) limit 1',
-                [email, password]
-            );
-            
-            query.on('row', addRow);
-
-            query.on('end', result => {
+        pool.query(
+            'select id, email, name from public.users where email = $1 and password = crypt($2, password) limit 1',
+            [email, password],
+            (err, result) => {
+                if (err) {
+                    done(err);
+                    return console.error(err);
+                }
                 if (result.rows.length > 0) {
                     done(null, result.rows[0]);
                 }
                 else {
                     done(null, false, "Unauthorized: Access is denied due to invalid credentials.");
                 }
-                client.end();
-            });
-
-            query.on('error', err => {
-                client.end();
-                done(err);
-            });
-        });
+            }
+        );
     }
 ));
 
@@ -105,31 +96,20 @@ app.get('/logout', (req, res) => {
 app.get('/leagues',
     passport.authenticate('session'),
     isLoggedIn,
-    (req, res, next) => {
-        const client = new pg.Client(conString);
-        client.connect(err => {
-            if (err) {
-                return res.status(500).send(err);
-            }
-            
-            const query = client.query(
-                'select leagues.id, leagues.name from public.leagues, public.membership where membership.user = $1 and leagues.id = membership.league',
-                [req.session.passport.user]
-            );
-
-            query.on('error', err => {
-                client.end();
-                res.status(500).send(err);
-            });
-            
-            query.on('row', addRow);
-
-            query.on('end', result => {
+    (req, res) => {
+        pool.query(
+            'select leagues.id, leagues.name from public.leagues, public.membership where membership.user = $1 and leagues.id = membership.league',
+            [req.session.passport.user],
+            (err, result) => {
+                if (err) {
+                    res.status(500).end();
+                    return console.error(err);
+                }
                 res.header('Content-Type', 'application/json');
                 res.send(result.rows);
-                client.end();
-            });
-        });
+            }
+        );
+
     }
 );
 
@@ -137,56 +117,35 @@ app.get('/leagues/:leagueid',
     passport.authenticate('session'),
     isLoggedIn,
     (req, res) => {
-        const client = new pg.Client(conString);
-        client.connect(err => {
-            if (err) {
-                return res.status(500).send(err);
-            }
+        co(function * () {
+            try {
+                let result = yield pool.query(
+                    'select leagues.id, leagues.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league and users.id = $2 limit 1',
+                    [req.params.leagueid, req.session.passport.user]
+                );
 
-            const query = client.query(
-                'select leagues.id, leagues.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league and users.id = $2 limit 1',
-                [req.params.leagueid, req.session.passport.user]
-            );
-            
-            query.on('error', err => {
-                client.end();
-                res.status(500).send(err);
-            });
-            
-            query.on('row', addRow);
-
-            query.on('end', result => {
                 if (result.rows.length === 0) {
-                    res.status(404).end();
-                    client.end();
-                    return;
+                    return res.status(404).end();
                 }
+
                 const league = result.rows[0];
-            
-                const query = client.query(
+
+                result = yield pool.query(
                     'select users.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league',
                     [req.params.leagueid]
                 );
 
-                query.on('error', err => {
-                    client.end();
-                    res.status(500).send(err);
+                res.header('Content-Type', 'application/json');
+                res.send({
+                    id: league.id,
+                    name: league.name,
+                    members: result.rows,
                 });
-                
-                query.on('row', addRow);
-
-                query.on('end', result => {
-                    res.header('Content-Type', 'application/json');
-                    res.send({
-                        id: league.id,
-                        name: league.name,
-                        members: result.rows,
-                    });
-                    client.end();
-                });
-
-            });
-
+            }
+            catch (err) {
+                res.status(500).end();
+                console.error(err);
+            }
         });
     }
 );

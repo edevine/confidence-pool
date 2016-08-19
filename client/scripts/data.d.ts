@@ -6,9 +6,10 @@ interface LeagueInfo {
 interface LeagueDetails {
     id: string;
     name: string;
-    members: User[];
+    members: MemberDetails[];
 }
 
-interface User {
+interface MemberDetails {
     name: string;
+    weeklyScores: number[];
 }

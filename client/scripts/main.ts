@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         leagueOverviewTable.innerHTML = details.members.map(toMembersRowHtml).join('');
     }
 
-    function toMembersRowHtml(member: User) {
+    function toMembersRowHtml(member: MemberDetails) {
         return `<tr><td>${member.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
     }
 
