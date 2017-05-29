@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = <HTMLFormElement>document.getElementById('login-form');
     const signinButton = <HTMLButtonElement>document.querySelector('.sign-in');
     const leaguesListPane = <HTMLElement>document.getElementById('leagues-list-pane');
-    const leaguesListTable = leaguesListPane.querySelector('tbody');
-    const leagueOverviewPane = <HTMLElement>document.getElementById('league-overview-pane');
-    const leagueOverviewTable = leagueOverviewPane.querySelector('tbody');
+    const leaguesListTable = leaguesListPane.querySelector('tbody')!;
+    const leagueOverviewPane = <HTMLElement>document.getElementById('league-overview-pane')!;
+    const leagueOverviewTable = leagueOverviewPane.querySelector('tbody')!;
     const logoutLink = <HTMLAnchorElement>document.querySelector('a.logout');
 
     const request = new XMLHttpRequest();
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderLeagueOverview(details: LeagueDetails) {
-        leagueOverviewPane.querySelector('.league-name').textContent = details.name;
+        leagueOverviewPane.querySelector('.league-name')!.textContent = details.name;
         leagueOverviewTable.innerHTML = details.members.map(toMembersRowHtml).join('');
     }
 
