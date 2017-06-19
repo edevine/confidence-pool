@@ -15,10 +15,10 @@ if (!Number.isInteger(port) || port < 0 || port > 65535) {
 }
 
 const pool = new Pool({
-  user: 'confidence-pool',
+  user: 'confidence_pool',
   password: process.env.PASSWORD,
   host: 'localhost',
-  database: 'confidence-pool',
+  database: 'confidence_pool',
   max: 10,
   idleTimeoutMillis: 1000,
 });
@@ -98,7 +98,7 @@ app.get('/leagues',
     isLoggedIn,
     (req, res) => {
         pool.query(
-            'select leagues.id, leagues.name from public.leagues, public.membership where membership.user = $1 and leagues.id = membership.league',
+            'select leagues.id, leagues.name from public.leagues, public.membership where membership.user_id = $1 and leagues.id = membership.league_id',
             [req.session.passport.user],
             (err, result) => {
                 if (err) {
@@ -120,7 +120,7 @@ app.get('/leagues/:leagueid',
         co(function * () {
             try {
                 let result = yield pool.query(
-                    'select leagues.id, leagues.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league and users.id = $2 limit 1',
+                    'select leagues.id, leagues.name from public.users, public.leagues, public.membership where membership.league_id = $1 and users.id = membership.user_id and leagues.id = membership.league_id and users.id = $2 limit 1',
                     [req.params.leagueid, req.session.passport.user]
                 );
 
@@ -131,7 +131,7 @@ app.get('/leagues/:leagueid',
                 const league = result.rows[0];
 
                 result = yield pool.query(
-                    'select users.name from public.users, public.leagues, public.membership where membership.league = $1 and users.id = membership.user and leagues.id = membership.league',
+                    'select users.name from public.users, public.leagues, public.membership where membership.league_id = $1 and users.id = membership.user_id and leagues.id = membership.league_id',
                     [req.params.leagueid]
                 );
 
