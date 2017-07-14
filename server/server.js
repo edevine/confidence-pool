@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -16,7 +17,7 @@ if (!Number.isInteger(port) || port < 0 || port > 65535) {
 
 const pool = new Pool({
   user: 'confidence_pool',
-  password: process.env.PASSWORD,
+  password: process.env.DB_PASSWORD,
   host: 'localhost',
   database: 'confidence_pool',
   max: 10,
