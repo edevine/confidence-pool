@@ -14,7 +14,8 @@
   },
   "homepage": "https://github.com/edevine/confidence-pool",
   "scripts": {
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "build": "tsc -p client/scripts"
   },
   "dependencies": {
     "body-parser": "^1.15.0",
