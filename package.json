@@ -9,12 +9,14 @@
   },
   "author": "Eric Devine",
   "license": "BSD-2-Clause",
+  "private": true,
   "bugs": {
     "url": "https://github.com/edevine/confidence-pool/issues"
   },
   "homepage": "https://github.com/edevine/confidence-pool",
   "scripts": {
     "start": "node server/server.js",
+    "clean": "del-cli client/scripts/app/**/*.js",
     "build": "tsc -p client/scripts"
   },
   "dependencies": {
@@ -30,6 +32,7 @@
     "pg-pool": "^1.7.1"
   },
   "devDependencies": {
+    "del-cli": "^1.1.0",
     "typescript": "^2.3.3"
   }
 }

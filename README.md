@@ -6,4 +6,14 @@ Web client for a football confidence pool.
     - PORT
     - DB_PASSWORD
 
-Copyright Eric Devine 2016
+## Build
+1. Clean compiled js files from `client/scripts/app` directory:
+```
+npm run clean
+```
+2. Run typescript compiler:
+```
+npm run build
+```
+
+Copyright (C) Eric Devine 2016-2017. All rights reserved.

@@ -1,3 +1,4 @@
 node_modules
-client/scripts/*.js
+client/scripts/app/**/*.js
+client/scripts/lib
 .env
