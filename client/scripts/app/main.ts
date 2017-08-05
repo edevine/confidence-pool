@@ -1,4 +1,4 @@
-import { listenOnce, submitForm, sendHyperlink } from 'dom-util';
+import { listenOnce, submitForm, sendHyperlink } from './dom-util';
 import { renderLeaguesList } from './views/LeaguesList';
 import { renderLeagueOverview } from './views/LeagueOverview';
 

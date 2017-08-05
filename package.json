@@ -16,8 +16,8 @@
   "homepage": "https://github.com/edevine/confidence-pool",
   "scripts": {
     "start": "node server/server.js",
-    "clean": "del-cli client/scripts/app/**/*.js",
-    "build": "tsc -p client/scripts"
+    "build": "webpack --config client/webpack.config.ts",
+    "dev": "webpack --config client/webpack.config.ts --watch"
   },
   "dependencies": {
     "body-parser": "^1.15.0",
@@ -32,7 +32,11 @@
     "pg-pool": "^1.7.1"
   },
   "devDependencies": {
-    "del-cli": "^1.1.0",
-    "typescript": "^2.3.3"
+    "@types/node": "^8.0.19",
+    "@types/webpack": "^3.0.5",
+    "ts-loader": "^2.3.2",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.3.3",
+    "webpack": "^3.4.1"
   }
 }

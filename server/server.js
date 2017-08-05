@@ -159,3 +159,5 @@ function isLoggedIn(req, res, next) {
 }
 
 app.listen(port);
+
+console.log('Server started in ' + process.uptime() + ' seconds.');

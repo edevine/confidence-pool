@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "module": "amd",
+        "module": "es6",
+        "noImplicitAny": true,
+        "outDir": "./dist",
+        "sourceMap": true,
         "strictNullChecks": true,
-        "noImplicitAny": true
+        "target": "es5"
     }
 }
