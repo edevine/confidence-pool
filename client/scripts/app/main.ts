@@ -1,70 +1,32 @@
-import { listenOnce, submitForm, sendHyperlink } from './dom-util';
-import { renderLeaguesList } from './views/LeaguesList';
-import { renderLeagueOverview } from './views/LeagueOverview';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { listenOnce, requestJson } from './dom-util';
+import LoginDialog from './views/LoginDialog';
+import LeaguesList from './views/LeaguesList';
+import LeagueOverview from './views/LeagueOverview';
 
-const loginDialog = <HTMLElement>document.getElementById('login-dialog');
-const loginForm = <HTMLFormElement>document.getElementById('login-form');
-const signinButton = <HTMLButtonElement>document.querySelector('.sign-in');
-const leaguesListPane = <HTMLElement>document.getElementById('leagues-list-pane');
-const leaguesListTable = leaguesListPane.querySelector('tbody')!;
-const leagueOverviewPane = <HTMLElement>document.getElementById('league-overview-pane')!;
+const mainElement = document.querySelector('main')!;
 const logoutLink = <HTMLAnchorElement>document.querySelector('a.logout');
 
-const request = new XMLHttpRequest();
-
-listenOnce(request, 'load', () => {
+requestJson('/leagues', request => {
     if (request.status === 200) {
-        leaguesListPane.style.removeProperty('display');
-        leaguesListPane.classList.add('opening');
         logoutLink.style.removeProperty('display');
-        renderLeaguesList(request.response, leaguesListTable);
+        onLogin(request.response as LeagueInfo[]);
     }
     else {
-        loginDialog.style.removeProperty('display');
-        loginDialog.className = 'dialog opening';
-
-        loginForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            signinButton.disabled = true;
-            loginDialog.className = 'dialog';
-
-            submitForm(loginForm, event => {
-                signinButton.disabled = false;
-                const request = <XMLHttpRequest>event.target;
-                if (request.status === 200) {
-                    loginDialog.className = 'dialog closed';
-                    setTimeout(() => {
-                        loginDialog.style.setProperty('display', 'none');
-                        leaguesListPane.style.removeProperty('display');
-                        leaguesListPane.classList.add('opening');
-                        logoutLink.style.removeProperty('display');
-                    }, 250);
-                    renderLeaguesList(request.response, leaguesListTable);
-                } else {
-                    loginDialog.className = 'dialog failed';
-                }
-            });
-        });
+        ReactDOM.render(React.createElement(LoginDialog, { onLogin }), mainElement);
     }
 });
 
-request.responseType = "json";
-request.open('get', '/leagues');
-request.setRequestHeader('Accept', 'application/json');
-request.send();
+function onLogin(leagues: LeagueInfo[]) {
+    ReactDOM.render(React.createElement(LeaguesList, { leagues, onClickLeague }), mainElement);
+}
 
-leaguesListPane.addEventListener('click', (event: MouseEvent) => {
-    if (event.target instanceof HTMLAnchorElement) {
-        event.preventDefault();
-        leaguesListPane.className = 'pane closed';
-        sendHyperlink(event.target, event => {
-            const request = <XMLHttpRequest>event.target;
-            leaguesListPane.style.setProperty('display', 'none');
-            leagueOverviewPane.style.removeProperty('display');
-            leagueOverviewPane.classList.add('opening');
-            if (request.status === 200) {
-                renderLeagueOverview(request.response, leagueOverviewPane);
-            }
-        });
-    }
-});
+function onClickLeague(url: string) {
+    requestJson(url, request => {
+        if (request.status === 200) {
+            const leageDetails: LeagueDetails = request.response;
+            ReactDOM.render(React.createElement(LeagueOverview, { leageDetails }), mainElement);
+        }
+    });
+}

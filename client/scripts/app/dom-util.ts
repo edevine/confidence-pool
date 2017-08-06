@@ -12,14 +12,14 @@ export function listenOnce(host: EventTarget, type: string, handler: (event: Eve
 /**
  * Send a hyperlink via XHR
  */
-export function sendHyperlink(
-    anchor: HTMLAnchorElement,
-    onload: (event: Event) => void
+export function requestJson(
+    url: string,
+    onload: (xhr: XMLHttpRequest) => void
 ) {
     const request = new XMLHttpRequest();
-    listenOnce(request, 'load', onload);
+    listenOnce(request, 'load', event => onload(event.currentTarget as XMLHttpRequest));
     request.responseType = "json";
-    request.open('get', anchor.href);
+    request.open('get', url);
     request.setRequestHeader('Accept', 'application/json');
     request.send();
 }

@@ -12,7 +12,7 @@ const config: Configuration = {
         }],
     },
     resolve: {
-        extensions: [".tsx", ".ts"],
+        extensions: [".tsx", ".ts", ".js", ".jsx"],
     },
     output: {
         path: path.resolve(__dirname, 'scripts'),
