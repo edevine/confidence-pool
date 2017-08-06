@@ -3,6 +3,7 @@
         "jsx": "react",
         "module": "es6",
         "noImplicitAny": true,
+        "noUnusedLocals": true,
         "outDir": "./dist",
         "sourceMap": true,
         "strictNullChecks": true,

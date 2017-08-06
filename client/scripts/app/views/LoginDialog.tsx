@@ -1,5 +1,4 @@
 import * as React from 'react';
-import SeasonTable from './SeasonTable';
 import { submitForm } from '../dom-util';
 
 interface LoginDialogProps {

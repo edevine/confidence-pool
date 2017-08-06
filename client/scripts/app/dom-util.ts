@@ -12,12 +12,20 @@ export function listenOnce(host: EventTarget, type: string, handler: (event: Eve
 /**
  * Send a hyperlink via XHR
  */
-export function requestJson(
+export function requestJson<T>(
     url: string,
-    onload: (xhr: XMLHttpRequest) => void
+    onload: (response: T) => void,
+    onfail?: () => void,
 ) {
     const request = new XMLHttpRequest();
-    listenOnce(request, 'load', event => onload(event.currentTarget as XMLHttpRequest));
+    listenOnce(request, 'load', event => {
+        if (request.status === 200) {
+            onload(request.response as T);
+        }
+        else {
+            onfail && onfail();
+        }
+    });
     request.responseType = "json";
     request.open('get', url);
     request.setRequestHeader('Accept', 'application/json');
@@ -27,7 +35,7 @@ export function requestJson(
 /**
  * Submits a form via XHR and invokes the callback with the payload
  */
-export function submitForm<V, E>(
+export function submitForm(
     form: HTMLFormElement,
     onload: (event: Event) => void
 ) {
